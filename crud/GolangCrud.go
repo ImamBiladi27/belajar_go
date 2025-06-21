@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/rs/cors"
+
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
 )
@@ -31,9 +33,9 @@ func main() {
     r.HandleFunc("/user/{id}", getUserHandler).Methods("GET")
     r.HandleFunc("/user/{id}", updateUserHandler).Methods("PUT")
     r.HandleFunc("/user/{id}", deleteUserHandler).Methods("DELETE")
-
+    handler := cors.Default().Handler(r)
     fmt.Println("Server started at :8090")
-    log.Fatal(http.ListenAndServe(":8090", r))
+    log.Fatal(http.ListenAndServe(":8090", handler))
 }
 
 // CREATE
