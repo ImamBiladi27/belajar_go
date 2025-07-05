@@ -16,6 +16,16 @@ type User struct {
     Password string
 }
 
+// Struct Penjualan dengan foreign key UserID yang mereference ke User.ID
+type Penjualan struct {
+    gorm.Model
+    UserID uint   `gorm:"null"` // Foreign key ke User
+    User   User   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:SET NULL;"` // Relasi ke User
+    Produk string
+    Jumlah int
+    Harga  float64
+}
+
 func main() {
     dsn := "root:@tcp(127.0.0.1:3306)/gocrud?charset=utf8mb4&parseTime=True&loc=Local"
     db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -23,10 +33,20 @@ func main() {
         log.Fatal("failed to connect to DB:", err)
     }
 
-    err = db.AutoMigrate(&User{})
-    if err != nil {
-        log.Fatal("failed to migrate:", err)
+    // Cek apakah tabel users sudah ada
+    if db.Migrator().HasTable(&User{}) {
+        // Jika tabel User sudah ada, migrasi hanya tabel Penjualan
+        err = db.AutoMigrate(&Penjualan{})
+        if err != nil {
+            log.Fatal("failed to migrate Penjualan:", err)
+        }
+        log.Println("Tabel Penjualan berhasil dimigrasi!")
+    } else {
+        // Jika tabel User belum ada, migrasi kedua tabel
+        err = db.AutoMigrate(&User{}, &Penjualan{})
+        if err != nil {
+            log.Fatal("failed to migrate:", err)
+        }
+        log.Println("Migrasi User dan Penjualan berhasil!")
     }
-
-    log.Println("Migrasi berhasil!")
 }
